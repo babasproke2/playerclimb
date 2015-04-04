@@ -4,14 +4,24 @@
 #include <tf2_stocks>
 #include <sdkhooks>
 
+#define PLUGIN_VERSION "1.0"
+
+new Handle:cvarDamage
 
 public Plugin:myinfo = {
 	name        = "Sniper Climb",
-	author      = "Nanochip",
+	author      = "Nanochip & VSH Devs",
 	description = "Climb walls with sniper melee.",
-	version     = "1.0",
+	version     = PLUGIN_VERSION,
 	url         = "http://thecubeserver.org/"
 };
+
+public OnPluginStart()
+{
+	CreateConVar("sm_sniperclimb_version", PLUGIN_VERSION, "Sniper Climb Version", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_UNLOGGED|FCVAR_DONTRECORD|FCVAR_REPLICATED|FCVAR_NOTIFY);
+	cvarDamage = CreateConVar("sm_sniperclimb_dmagae", "1.0", "Should a player take damage when climbing walls as a sniper? 1 = Yes 0 = No.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	AutoExecConfig(true, "SniperClimb");
+}
 
 public Action:TF2_CalcIsAttackCritical(client, weapon, String:weaponname[], &bool:result)
 {
@@ -72,8 +82,11 @@ SickleClimbWalls(client, weapon)     //Credit to Mecha the Slag
     fVelocity[2] = 600.0;
 
     TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, fVelocity);
-
-    SDKHooks_TakeDamage(client, client, client, 15.0, DMG_CLUB, GetPlayerWeaponSlot(client, TFWeaponSlot_Melee));
+	
+	if (GetConVarBool(cvarDamage))
+	{
+		SDKHooks_TakeDamage(client, client, client, 15.0, DMG_CLUB, GetPlayerWeaponSlot(client, TFWeaponSlot_Melee));
+	}
     
     ClientCommand(client, "playgamesound \"%s\"", "player\\taunt_clip_spin.wav");
     
